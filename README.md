@@ -41,6 +41,7 @@ This is the backend for the Pocket Chips application, built using NestJS and Typ
 - **POST** \`/auth/signup\`: Register a new user
 - **POST** \`/auth/signin\`: Login and get a JWT
 - **GET** \`/users\`: Retrieve a list of all users (protected route)
+- **PUT** \`/users/:id:\`: Update a user's email and/or password (protected route, requires a valid JWT).
 
 ## Contributing
 Contributions are welcome! Feel free to fork this repository and submit a pull request.
