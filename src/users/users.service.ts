@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -19,6 +20,36 @@ export class UsersService {
   async createUser(email: string, password: string): Promise<User> {
     const user = this.userRepo.create({ email, password });
     return this.userRepo.save(user);
+  }
+
+  /**
+   * Atualiza um usuário existente no banco de dados.
+   * @param id - ID do usuário a ser atualizado
+   * @param updateData - Objeto contendo os campos que podem ser atualizados (email e/ou password)
+   * @returns Usuário atualizado (User)
+   * @throws NotFoundException - Se o usuário com o ID fornecido não for encontrado
+   */
+  async updateUser(
+    id: number,
+    updateData: { email?: string; password?: string },
+  ): Promise<User> {
+    const user: User | null = await this.findOne(id);
+
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+
+    const updatedUser: User = { ...user };
+
+    if (updateData.email) {
+      updatedUser.email = updateData.email;
+    }
+
+    if (updateData.password) {
+      updatedUser.password = await bcrypt.hash(updateData.password, 10);
+    }
+
+    return this.userRepo.save(updatedUser);
   }
 
   /**

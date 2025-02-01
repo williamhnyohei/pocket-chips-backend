@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Put,
+  Get,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
@@ -11,6 +19,15 @@ export class UsersController {
   @Post()
   create(@Body() body: { email: string; password: string }) {
     return this.usersService.createUser(body.email, body.password);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put(':id')
+  updateUser(
+    @Param('id') id: number,
+    @Body() body: { email?: string; password?: string },
+  ) {
+    return this.usersService.updateUser(id, body);
   }
 
   // Protegendo a rota para listar todos os usuários
