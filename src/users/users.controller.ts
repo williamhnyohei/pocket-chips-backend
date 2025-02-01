@@ -6,41 +6,45 @@ import {
   Body,
   Param,
   UseGuards,
+  ParseIntPipe,
+  NotFoundException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { User } from './user.entity';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // Protegendo a rota para criar usuários (opcional)
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() body: { email: string; password: string }) {
+  create(@Body() body: { email: string; password: string }): Promise<User> {
     return this.usersService.createUser(body.email, body.password);
   }
 
   @UseGuards(JwtAuthGuard)
   @Put(':id')
-  updateUser(
-    @Param('id') id: number,
+  async updateUser(
+    @Param('id', ParseIntPipe) id: number,
     @Body() body: { email?: string; password?: string },
-  ) {
-    return this.usersService.updateUser(id, body);
+  ): Promise<User> {
+    const updatedUser = await this.usersService.updateUser(id, body);
+    if (!updatedUser) {
+      throw new NotFoundException('User not found');
+    }
+    return updatedUser;
   }
 
-  // Protegendo a rota para listar todos os usuários
   @UseGuards(JwtAuthGuard)
   @Get()
-  findAll() {
+  findAll(): Promise<User[]> {
     return this.usersService.findAll();
   }
 
-  // Protegendo a rota para buscar um único usuário pelo ID
   @UseGuards(JwtAuthGuard)
   @Get(':id')
-  findOne(@Param('id') id: number) {
+  findOne(@Param('id', ParseIntPipe) id: number): Promise<User> {
     return this.usersService.findOne(id);
   }
 }

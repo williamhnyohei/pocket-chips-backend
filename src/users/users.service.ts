@@ -33,23 +33,20 @@ export class UsersService {
     id: number,
     updateData: { email?: string; password?: string },
   ): Promise<User> {
-    const user: User | null = await this.findOne(id);
-
+    const user = await this.findOne(id);
     if (!user) {
-      throw new NotFoundException('Usuário não encontrado');
+      throw new NotFoundException('User not found');
     }
 
-    const updatedUser: User = { ...user };
-
     if (updateData.email) {
-      updatedUser.email = updateData.email;
+      user.email = updateData.email;
     }
 
     if (updateData.password) {
-      updatedUser.password = await bcrypt.hash(updateData.password, 10);
+      user.password = await bcrypt.hash(updateData.password, 10);
     }
 
-    return this.userRepo.save(updatedUser);
+    return this.userRepo.save(user);
   }
 
   /**
@@ -65,9 +62,12 @@ export class UsersService {
    * @param id - ID do usuário
    * @returns O usuário encontrado ou undefined se não existir
    */
-  async findOne(id: number): Promise<User | null> {
+  async findOne(id: number): Promise<User> {
     const user = await this.userRepo.findOne({ where: { id } });
-    return user ?? null;
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
   }
 
   /**
